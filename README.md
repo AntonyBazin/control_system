@@ -5,6 +5,9 @@ KAMAD SAXENA and Ishani Kathuria. (2021, June).
 20BN-JESTER, Version 8. 
 Retrieved May 7, from https://www.kaggle.com/datasets/kamadsaxena/20bnjester.
 
+---
+This project's model was trained with transfer learning 
+based on the model from:
 
 ```
 @ARTICLE{9085286,
