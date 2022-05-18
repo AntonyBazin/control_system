@@ -1,0 +1,9 @@
+{
+  "train_data_folder": "/home/antony/Desktop/control_system/20BN-JESTER/Train",
+  "validation_data_folder": "/home/antony/Desktop/control_system/20BN-JESTER/Validation",
+  "test_data_folder": "/home/antony/Desktop/control_system/20BN-JESTER/Test",
+  "full_train_data_csv": "/home/antony/Desktop/control_system/20BN-JESTER/Train.csv",
+  "full_test_data_csv": "/home/antony/Desktop/control_system/20BN-JESTER/Test.csv",
+  "full_validation_data_csv": "/home/antony/Desktop/control_system/20BN-JESTER/Validation.csv",
+  "full_labels_csv": "./Labels.csv"
+}
