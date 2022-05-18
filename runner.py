@@ -32,9 +32,11 @@ def set_params():
 
 
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+connected = False
 ip = set_params()
 try:
     soc.connect((ip, 12345))
+    connected = True
 except OSError as oe:
     print(f'Could not connect to target ip: {oe}')
 
@@ -111,18 +113,14 @@ while True:
             timeout -= 1
         if value.item() > -1.7 and indices < 25 and not timeout:
             print('Gesture:', ges[indices], '\t\t\t\t\t\t Value: {:.2f}'.format(value.item()))
+            if connected:
+                soc.send(str(indices).encode('utf8'))
+                result_bytes = soc.recv(4096)
+                result_string = result_bytes.decode('utf8')
+                print(f'Received from target: {result_string}')
             timeout = frames_for_detection
         pred = indices
         imgs = imgs[1:]
-
-        # df = pd.DataFrame(mean_hist, columns=ges)
-        #
-        # ax.clear()
-        # df.plot.line(legend=False, figsize=(16, 6), ax=ax, ylim=(0, 1))
-        # if setup:
-        #     plt.show(block=False)
-        #     setup = False
-        # plt.draw()
 
     n += 1
     bg = np.full((480, 1200, 3), 15, np.uint8)
@@ -141,5 +139,7 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+if connected:
+    soc.close()
 cam.release()
 cv2.destroyAllWindows()
