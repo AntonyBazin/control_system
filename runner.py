@@ -9,6 +9,34 @@ import matplotlib.pyplot as plt
 import json
 import socket
 import utils as u
+import getopt
+import sys
+
+options = 'h'
+long_options = ['help', 'IP=']
+
+
+def set_params():
+    ip_input = ''
+    try:
+        arguments, values = getopt.getopt(sys.argv[1:], options, long_options)
+        for opt, arg in arguments:
+            if opt in ('-h', '--help'):
+                print('IP - IP address of the target system accepting TCP connections.')
+            elif opt == '--IP':
+                ip_input = str(arg)
+        print(f'Set target IP={ip_input}')
+    except getopt.error as err:
+        print(str(err))
+    return ip_input
+
+
+soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+ip = set_params()
+try:
+    soc.connect((ip, 12345))
+except OSError as oe:
+    print(f'Could not connect to target ip: {oe}')
 
 with open('./configs.json') as data_file:
     config = json.load(data_file)
@@ -16,7 +44,6 @@ with open('./configs.json') as data_file:
 label_dict = pd.read_csv(config['full_labels_csv'], header=None)
 ges = label_dict[0].tolist()
 
-soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 seq_len = 16
 value = 0
