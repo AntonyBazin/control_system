@@ -18,9 +18,10 @@ soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected, hass = False, False
 ip, auth = set_params(options, long_options)
 if auth:
-    resp = auth.request('POST', 'http://192.168.1.7:8123/api/states/sensor.gestures',
+    resp = auth.request('POST',
                         headers={'content-type': 'application/json'},
-                        data=json.dumps({'state': '0', 'attributes': {'friendly_name': 'Recognized gestures'}}))
+                        data=json.dumps({'state': '0', 'attributes': {'friendly_name': 'Recognized gestures',
+                                                                      'gesture_name': 'No gesture'}}))
     print(resp)
     hass = True
 elif ip:
@@ -104,13 +105,13 @@ while True:
         if value.item() > -1.7 and indices != 0 and indices != 2 and not timeout:
             print('Gesture:', ges[indices], '\t\t\t\t\t\t Value: {:.2f}'.format(value.item()))
             if hass:
-                resp = auth.request('POST', 'http://192.168.1.7:8123/api/states/sensor.gestures',
+                resp = auth.request('POST',
                                     headers={'content-type': 'application/json'},
                                     data=json.dumps(
                                         {'state': str(indices),
-                                         'description': str(ges[indices]),
-                                         'attributes': {'friendly_name': 'Recognized gestures'}}))
-                print(resp.text, resp)
+                                         'attributes': {'friendly_name': 'Recognized gestures',
+                                                        'gesture_name': str(ges[indices])}}))
+                print(f'Response text: {resp.text}')
             elif connected:
                 soc.send(str(indices).encode('utf8'))
                 result_bytes = soc.recv(4096)

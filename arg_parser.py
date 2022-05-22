@@ -16,11 +16,12 @@ def set_params(options: str, long_options: list):
                 print(f'Received target IP: {ip_input}')
                 break
             elif opt == '--hass':
-                auth_object = Auth('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9'
+                auth_object = Auth(f'http://{str(arg)}:8123/api/states/sensor.gestures',
+                                   'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9'
                                    '.eyJpc3MiOiIzNTc0ZThiNDIwYzc0MDBiYmN'
                                    'hMWQyNjU0MTBjNWMwNSIsImlhdCI6MTY1MDM'
                                    'yNjE5MiwiZXhwIjoxOTY1Njg2MTkyfQ.7FpT'
-                                   'HLidC4XUnPQ0Y_gMFKLinxTfzjeby4JHwQ44lSw'
+                                   'HLidC4XUnPQ0Y_gMFKLinxTfzjeby4JHwQ44lSw',
                                    )
                 print(f'Received Home Assistant IP')
                 break
