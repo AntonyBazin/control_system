@@ -9,36 +9,26 @@ import matplotlib.pyplot as plt
 import json
 import socket
 import utils as u
-import getopt
-import sys
+from arg_parser import set_params
 
 options = 'h'
-long_options = ['help', 'IP=']
-
-
-def set_params():
-    ip_input = ''
-    try:
-        arguments, values = getopt.getopt(sys.argv[1:], options, long_options)
-        for opt, arg in arguments:
-            if opt in ('-h', '--help'):
-                print('IP - IP address of the target system accepting TCP connections.')
-            elif opt == '--IP':
-                ip_input = str(arg)
-        print(f'Set target IP={ip_input}')
-    except getopt.error as err:
-        print(str(err))
-    return ip_input
-
+long_options = ['help', 'IP=', 'hass=']
 
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-connected = False
-ip = set_params()
-try:
-    soc.connect((ip, 12345))
-    connected = True
-except OSError as oe:
-    print(f'Could not connect to target ip: {oe}')
+connected, hass = False, False
+ip, auth = set_params(options, long_options)
+if auth:
+    resp = auth.request('POST', 'http://192.168.1.7:8123/api/states/sensor.gestures',
+                        headers={'content-type': 'application/json'},
+                        data=json.dumps({'state': '0', 'attributes': {'friendly_name': 'Recognized gestures'}}))
+    print(resp)
+    hass = True
+elif ip:
+    try:
+        soc.connect((ip, 12345))
+        connected = True
+    except OSError as oe:
+        print(f'Could not connect to target ip: {oe}')
 
 with open('./configs.json') as data_file:
     config = json.load(data_file)
@@ -50,8 +40,8 @@ ges = label_dict[0].tolist()
 seq_len = 16
 value = 0
 imgs = []
-pred = 8
-top_3 = [9, 8, 7]
+pred = 0
+top_3 = [0, 1, 2]
 out = np.zeros(10)
 print('Loading model')
 
@@ -82,7 +72,7 @@ plt.ion()
 fig, ax = plt.subplots()
 eval_samples = 5
 num_classes = 27
-timeout = 64
+timeout = 16
 frames_for_detection = 16
 
 score_energy = torch.zeros((eval_samples, num_classes))
@@ -111,9 +101,17 @@ while True:
         _, top_3 = torch.topk(curr_mean, k=3)
         if timeout > 0:
             timeout -= 1
-        if value.item() > -1.7 and indices < 25 and not timeout:
+        if value.item() > -1.7 and indices != 0 and indices != 2 and not timeout:
             print('Gesture:', ges[indices], '\t\t\t\t\t\t Value: {:.2f}'.format(value.item()))
-            if connected:
+            if hass:
+                resp = auth.request('POST', 'http://192.168.1.7:8123/api/states/sensor.gestures',
+                                    headers={'content-type': 'application/json'},
+                                    data=json.dumps(
+                                        {'state': str(indices),
+                                         'description': str(ges[indices]),
+                                         'attributes': {'friendly_name': 'Recognized gestures'}}))
+                print(resp.text, resp)
+            elif connected:
                 soc.send(str(indices).encode('utf8'))
                 result_bytes = soc.recv(4096)
                 result_string = result_bytes.decode('utf8')
@@ -127,7 +125,7 @@ while True:
     bg[:480, :640] = frame
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    if value > -1.7:
+    if value > -1.7 and pred != 0 and pred != 2:
         cv2.putText(bg, ges[pred], (40, 40), font, 1, (0, 0, 0), 2)
     cv2.rectangle(bg, (128, 48), (640 - 128, 480 - 48), (0, 255, 0), 3)
     for i, top in enumerate(reversed(top_3)):
