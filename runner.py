@@ -18,12 +18,15 @@ soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected, hass = False, False
 ip, auth = set_params(options, long_options)
 if auth:
-    resp = auth.request('POST',
-                        headers={'content-type': 'application/json'},
-                        data=json.dumps({'state': '0', 'attributes': {'friendly_name': 'Recognized gestures',
-                                                                      'gesture_name': 'No gesture'}}))
-    print(resp)
-    hass = True
+    try:
+        resp = auth.request('POST',
+                            headers={'content-type': 'application/json'},
+                            data=json.dumps({'state': '0', 'attributes': {'friendly_name': 'Recognized gestures',
+                                                                          'gesture_name': 'No gesture'}}))
+        print(resp)
+        hass = True
+    except OSError as oe:
+        print(f'Could not connect to target ip: {oe}')
 elif ip:
     try:
         soc.connect((ip, 12345))
