@@ -3,7 +3,9 @@ import sys
 from auth import Auth
 
 
-def set_params(options: str, long_options: list):
+def set_params():
+    options = 'h'
+    long_options = ['help', 'IP=', 'hass=']
     ip_input = ''
     auth_object = None
     try:
