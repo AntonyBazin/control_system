@@ -47,22 +47,19 @@ def start_server():
     print('Socket now listening')
 
     while True:
-            r, _, _ = select.select((soc,), (), (), 20)
-            for s in r:
-                conn, addr = soc.accept()
-                ip, port = str(addr[0]), str(addr[1])
-                print('Accepting connection from ' + ip + ':' + port)
-                try:
-                    Thread(target=client_thread, args=(conn, ip, port)).start()
-                except EOFError:
-                    print('Keyboard interrupt received. Stop.')
-                    traceback.print_exc()
-                    soc.close()
-                    sys.exit(0)
-    print('Timeout - exiting')
-    soc.close()
-    sys.exit(0)
+        r, _, _ = select.select((soc,), (), (), 20)
+        for s in r:
+            conn, addr = soc.accept()
+            ip, port = str(addr[0]), str(addr[1])
+            print('Accepting connection from ' + ip + ':' + port)
+            try:
+                Thread(target=client_thread, args=(conn, ip, port)).start()
+            except EOFError:
+                print('Keyboard interrupt received. Stop.')
+                traceback.print_exc()
+                soc.close()
+                sys.exit(0)
+
 
 if __name__ == '__main__':
     start_server()
-

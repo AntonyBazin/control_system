@@ -12,7 +12,7 @@ import utils as u
 from arg_parser import set_params
 
 
-def setup_connections():
+def setup_connections(auth, ip, soc):
     conn, ha = False, False
     if auth:
         try:
@@ -32,21 +32,21 @@ def setup_connections():
     return ha, conn
 
 
-def run():
-    global soc, ip, auth, data
+def run(allowed_gestures: list):
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ip, auth = set_params()
-    connected, hass = setup_connections()
+    connected, hass = setup_connections(auth, ip, soc)
     with open('./configs.json') as data_file:
         config = json.load(data_file)
     label_dict = pd.read_csv(config['full_labels_csv'], header=None)
     ges = label_dict[0].tolist()
-    seq_len = 16
+
     value = 0
     imgs = []
     pred = 0
     top_3 = [0, 1, 2]
     out = np.zeros(10)
+
     print('Loading model')
     curr_folder = './'
     model = u.CombinedModel(batch_size=1, seq_length=16)
@@ -60,13 +60,13 @@ def run():
         t.ToTensor(),
         t.Normalize(std=std, mean=mean),
     ])
+
     print('Starting prediction')
     cam = cv2.VideoCapture(0)
     cam.set(cv2.CAP_PROP_FPS, 30)
     n = 0
     hist = []
     mean_hist = []
-    setup = True
     plt.ion()
     fig, ax = plt.subplots()
     eval_samples = 5
@@ -74,7 +74,7 @@ def run():
     timeout = 16
     frames_for_detection = 16
     score_energy = torch.zeros((eval_samples, num_classes))
-    times = []
+
     while True:
         ret, frame = cam.read()
         resized_frame = cv2.resize(frame, (160, 120))
@@ -99,7 +99,7 @@ def run():
             _, top_3 = torch.topk(curr_mean, k=3)
             if timeout > 0:
                 timeout -= 1
-            if value.item() > -1.7 and indices != 0 and indices != 2 and not timeout:
+            if value.item() > -1.7 and indices in allowed_gestures and not timeout:
                 print('Gesture:', ges[indices], '\t\t\t\t Value: {:.2f}'.format(value.item()))
                 if hass:
                     resp = auth.request('POST',
@@ -123,7 +123,7 @@ def run():
         bg[:480, :640] = frame
 
         font = cv2.FONT_HERSHEY_SIMPLEX
-        if value > -1.7 and pred != 0 and pred != 2:
+        if value > -1.7 and pred in allowed_gestures:
             cv2.putText(bg, ges[pred], (40, 40), font, 1, (0, 0, 0), 2)
         cv2.rectangle(bg, (128, 48), (640 - 128, 480 - 48), (0, 255, 0), 3)
         for i, top in enumerate(reversed(top_3)):
@@ -141,4 +141,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    run([4, 5, 6, 11, 12, 14, 15, 17, 19, 20, 23, 24, 25, 26])
