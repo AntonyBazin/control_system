@@ -11,6 +11,8 @@ import socket
 import utils as u
 from arg_parser import set_params
 
+from datetime import datetime
+
 options = 'h'
 long_options = ['help', 'IP=', 'hass=']
 
@@ -50,7 +52,7 @@ out = np.zeros(10)
 print('Loading model')
 
 curr_folder = './'
-model = u.CombinedModel(batch_size=1, seq_lenght=16)
+model = u.CombinedModel(batch_size=1, seq_length=16)
 loaded_dict = torch.load(curr_folder + 'model_40_10.ckp')
 model.load_state_dict(loaded_dict)
 model = model.cuda()
@@ -81,16 +83,19 @@ frames_for_detection = 16
 
 score_energy = torch.zeros((eval_samples, num_classes))
 
+times = []
+
 while True:
     ret, frame = cam.read()
     resized_frame = cv2.resize(frame, (160, 120))
     pre_img = Image.fromarray(resized_frame.astype('uint8'), 'RGB')
     img = transform(pre_img)
 
-    if n % 4 == 0:
+    if n % 3 == 0:
         imgs.append(torch.unsqueeze(img, 0))
 
     if len(imgs) == frames_for_detection:
+        time = datetime.now()
         data = torch.cat(imgs).cuda()
         out = model(data.unsqueeze(0)).squeeze().data.cpu().numpy()
         if len(hist) > 500:
@@ -106,7 +111,10 @@ while True:
         if timeout > 0:
             timeout -= 1
         if value.item() > -1.7 and indices != 0 and indices != 2 and not timeout:
-            print('Gesture:', ges[indices], '\t\t\t\t\t\t Value: {:.2f}'.format(value.item()))
+            rec_time = datetime.now()
+            print(rec_time - time)
+            times.append((rec_time - time).microseconds)
+            print('Gesture:', ges[indices], '\t\t\t\t Value: {:.2f}'.format(value.item()))
             if hass:
                 resp = auth.request('POST',
                                     headers={'content-type': 'application/json'},
@@ -145,3 +153,4 @@ if connected:
     soc.close()
 cam.release()
 cv2.destroyAllWindows()
+print(times)

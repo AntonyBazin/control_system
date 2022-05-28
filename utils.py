@@ -13,11 +13,11 @@ from collections import namedtuple
 
 class FullModel(nn.Module):
 
-    def __init__(self, batch_size, seq_lenght=8):
+    def __init__(self, batch_size, seq_length=8):
         super(FullModel, self).__init__()
 
         class CNN2D(nn.Module):
-            def __init__(self, batch_size=batch_size, image_size=96, seq_lenght=8, in_channels=3):
+            def __init__(self, batch_size=batch_size, image_size=96, seq_length=8, in_channels=3):
                 super(CNN2D, self).__init__()
                 self.conv1 = self._create_conv_layer(in_channels=in_channels, out_channels=16)
                 self.conv2 = self._create_conv_layer(in_channels=16, out_channels=32)
@@ -52,7 +52,7 @@ class FullModel(nn.Module):
                 )
 
         class CNN3D(nn.Module):
-            def __init__(self, batch_size=batch_size, image_size=96, seq_lenght=8):
+            def __init__(self, batch_size=batch_size, image_size=96, seq_length=8):
                 super(CNN3D, self).__init__()
                 self.conv1 = self._create_conv_layer_pool(in_channels=256, out_channels=256, pool=(1, 1, 1))
                 self.conv2 = self._create_conv_layer_pool(in_channels=256, out_channels=256, pool=(2, 2, 2))
@@ -108,7 +108,7 @@ class FullModel(nn.Module):
         self.combiner = Combiner(4608)
 
         self.batch_size = batch_size
-        self.seq_lenght = seq_lenght
+        self.seq_length = seq_length
         self.steps = 0
         self.steps = 0
         self.epochs = 0
@@ -130,7 +130,7 @@ class FullModel(nn.Module):
 
 
 class CombinedModel(nn.Module):
-    def __init__(self, batch_size, seq_lenght=8):
+    def __init__(self, batch_size, seq_length=8):
         super().__init__()
 
         class Combiner(nn.Module):
@@ -155,11 +155,11 @@ class CombinedModel(nn.Module):
                     nn.Dropout(p=p)
                 )
 
-        self.fm = FullModel(batch_size, seq_lenght)
+        self.fm = FullModel(batch_size, seq_length)
         self.combiner = Combiner(4608)
         self.fc = nn.Linear(27, 27)
         self.batch_size = batch_size
-        self.seq_lenght = seq_lenght
+        self.seq_length = seq_length
         self.steps = 0
         self.steps = 0
         self.epochs = 0
