@@ -4,7 +4,7 @@ import socket
 
 from auth import Auth
 
-auth = Auth(f'http://192.168.1.55:8123/api/states/sensor.gestures',
+auth = Auth(f'http://192.168.1.127:8123/api/states/sensor.gestures',
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9'
             '.eyJpc3MiOiIzNTc0ZThiNDIwYzc0MDBiYmN'
             'hMWQyNjU0MTBjNWMwNSIsImlhdCI6MTY1MDM'
@@ -32,7 +32,7 @@ print('HASS:')
 print([i.microseconds for i in times])
 
 soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-soc.connect(('192.168.1.55', 12345))
+soc.connect(('192.168.1.127', 12345))
 
 tcp_times = []
 for i in range(50):

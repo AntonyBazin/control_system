@@ -35,7 +35,7 @@ def setup_connections(auth, ip, soc):
 def run(allowed_gestures: list):
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ip, auth = set_params()
-    connected, hass = setup_connections(auth, ip, soc)
+    hass, connected = setup_connections(auth, ip, soc)
     with open('./configs.json') as data_file:
         config = json.load(data_file)
     label_dict = pd.read_csv(config['full_labels_csv'], header=None)
